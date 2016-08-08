@@ -26,15 +26,20 @@ public class MyArrayStack<T> implements IMyStack<T> {
 
     @Override
     public T pop() {
-        T element = array[top - 1];
-        array[top - 1] = null;
-        top--;
-        return element;
+        if (!empty()) {
+            T element = array[top - 1];
+            array[top - 1] = null;
+            top--;
+            return element;
+        } else {
+            return null;
+        }
     }
 
     @Override
     public T peek() {
-        return array[top - 1];
+        if (!empty()) return array[top - 1];
+        else return null;
     }
 
     @Override
@@ -43,20 +48,20 @@ public class MyArrayStack<T> implements IMyStack<T> {
     }
 
     @Override
-    public T search(T element) {
+    public int indexOf(T element) {
         if (element != null) {
             for (int i = 0; i <= (top - 1); i++) {
                 if (array[i].equals(element)) {
-                    return array[i];
+                    return i;
                 }
             }
         } else {
             for (int i = 0; i <= (top - 1); i++) {
                 if (array[i] == null){
-                    return array[i];
+                    return i;
                 }
             }
         }
-        return null;
+        return -1;
     }
 }
