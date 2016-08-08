@@ -28,8 +28,7 @@ public class MyArrayStack<T> implements IMyStack<T> {
     public T pop() {
         if (!empty()) {
             T element = array[top - 1];
-            array[top - 1] = null;
-            top--;
+            array[--top] = null;
             return element;
         } else {
             return null;
