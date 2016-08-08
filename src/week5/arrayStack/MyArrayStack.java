@@ -27,8 +27,8 @@ public class MyArrayStack<T> implements IMyStack<T> {
     @Override
     public T pop() {
         if (!empty()) {
-            T element = array[top - 1];
-            array[--top] = null;
+            T element = array[--top];
+            array[top] = null;
             return element;
         } else {
             return null;
