@@ -8,5 +8,5 @@ public interface IMyStack<T> {
     T pop();
     T peek();
     boolean empty();
-    int indexOf(T element);
+    int search(T element);
 }

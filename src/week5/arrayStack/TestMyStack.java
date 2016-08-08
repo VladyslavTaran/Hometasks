@@ -33,14 +33,16 @@ public class TestMyStack {
         return stringMyArrayStack.peek().equals("second");
     }
 
-    public static boolean testIndexOf(){
+    public static boolean testSearch(){
         MyArrayStack<Object> stringMyArrayStack = new MyArrayStack<>(10);
         Object obj1 = new Object();
         Object obj2 = new Object();
         Object obj3 = new Object();
+        Object obj4 = new Object();
         stringMyArrayStack.push(obj1);
         stringMyArrayStack.push(obj2);
         stringMyArrayStack.push(obj3);
-        return (stringMyArrayStack.indexOf(obj2) == 1);
+        stringMyArrayStack.push(obj4);
+        return (stringMyArrayStack.search(obj4) == 0);
     }
 }

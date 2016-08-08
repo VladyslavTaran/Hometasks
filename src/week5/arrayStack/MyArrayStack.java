@@ -47,17 +47,17 @@ public class MyArrayStack<T> implements IMyStack<T> {
     }
 
     @Override
-    public int indexOf(T element) {
+    public int search(T element) {
         if (element != null) {
-            for (int i = 0; i <= (top - 1); i++) {
+            for (int i = (top - 1); i >= 0; i--) {
                 if (array[i].equals(element)) {
-                    return i;
+                    return top - 1 - i;
                 }
             }
         } else {
-            for (int i = 0; i <= (top - 1); i++) {
+            for (int i = (top - 1); i >= 0; i--) {
                 if (array[i] == null){
-                    return i;
+                    return top - 1 - i;
                 }
             }
         }
