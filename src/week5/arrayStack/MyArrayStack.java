@@ -11,8 +11,8 @@ public class MyArrayStack<T> implements IMyStack<T> {
     private T[] array;
     private int top = 0;
 
-    public MyArrayStack(Class<T> type, int length) {
-        array = (T[]) Array.newInstance(type, length);
+    public MyArrayStack(int length) {
+        array = (T[]) new Object[length];
     }
 
     @Override
