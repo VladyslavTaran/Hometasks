@@ -1,72 +1,62 @@
 package week5.arrayStack;
 
+
 import java.lang.reflect.Array;
-import java.util.Stack;
 
 /**
- * Created by Vladislav on 04.08.2016.
+ * Created by Vladislav on 06.08.2016.
  */
-
-public class MyArrayStack<T>{
+public class MyArrayStack<T> implements IMyStack<T> {
 
     private T[] array;
-    private int first = 0;
-    private int last = 0;
-    private int arrLen;
+    private int top = 0;
 
-    public MyArrayStack(Class<T> type, int len) {
-        array = (T[])Array.newInstance(type, len);
+    public MyArrayStack(Class<T> type, int length) {
+        array = (T[]) Array.newInstance(type, length);
     }
 
-    public T push(T item) {
-        if (!empty()){
-            if (first > 0){
-                moveElements(-1);
-                array[last] = item;
-                first--;
+    @Override
+    public T push(T element) {          //http://www.tutorialspoint.com/java/java_stack_class.htm
+        if (top < array.length) {       //Pushes element onto the stack. element is also returned.
+            array[top++] = element;
+            return array[top - 1];
+        }
+        return null;
+    }
+
+    @Override
+    public T pop() {
+        T element = array[top - 1];
+        array[top - 1] = null;
+        top--;
+        return element;
+    }
+
+    @Override
+    public T peek() {
+        return array[top - 1];
+    }
+
+    @Override
+    public boolean empty() {
+        return (top == 0) && (array[top] == null);
+    }
+
+    @Override
+    public T search(T element) {
+        if (element != null) {
+            for (int i = 0; i <= (top - 1); i++) {
+                if (array[i].equals(element)) {
+                    return array[i];
+                }
             }
         } else {
-            last = array.length - 1;
-            first = last;
-            arrLen++;
-            array[last] = item;
+            for (int i = 0; i <= (top - 1); i++) {
+                if (array[i] == null){
+                    return array[i];
+                }
+            }
         }
-        return array[last];
-    }
-
-    public T pop() {
-        T obj;
-        obj = array[last];
-        array[last] = null;
-        if ((obj != null) && (first != last)) moveElements(1);
-        first++;
-        return obj;
-    }
-
-    public T peek() {
-        return (empty() ? null : array[array.length - 1]);
-    }
-
-    public boolean empty() {
-        for (int i = 0; i < array.length; i++) {
-            if (array[i] != null) return false;
-        }
-        return true;
-    }
-
-    public int search(T o) {
-        for (int i = first; i <= last; i++) {
-            if (array[i] == o) return i;
-        }
-        return -1;
-    }
-
-    private void moveElements(int num){
-        if (num > 0) {
-            System.arraycopy(array, first, array, first + num, last - first);
-            array[first] = null;
-        } else {
-            System.arraycopy(array, first, array, first + num, last - first + 1);
-        }
+        return null;
     }
 }

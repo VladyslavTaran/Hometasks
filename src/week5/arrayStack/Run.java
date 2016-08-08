@@ -1,7 +1,5 @@
 package week5.arrayStack;
 
-import sun.swing.StringUIClientPropertyKey;
-
 /**
  * Created by Vladislav on 05.08.2016.
  */

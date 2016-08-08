@@ -1,10 +1,13 @@
 package week5.arrayStack;
 
+import week5.arrayStack.MyArrayStack;
+
 /**
  * Created by Vladislav on 05.08.2016.
  */
 public class TestMyStack {
     public static boolean testPush(){
+
         MyArrayStack<String> stringMyArrayStack = new MyArrayStack<>(String.class, 10);
         stringMyArrayStack.push("first");
         return !stringMyArrayStack.empty();
@@ -38,6 +41,6 @@ public class TestMyStack {
         stringMyArrayStack.push(obj1);
         stringMyArrayStack.push(obj2);
         stringMyArrayStack.push(obj3);
-        return (stringMyArrayStack.search(obj2) == 8);
+        return (stringMyArrayStack.search(obj2) == obj2);
     }
 }
