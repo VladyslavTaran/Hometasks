@@ -19,8 +19,8 @@ public class MyArrayStack<T> implements IMyStack<T> {
     public T push(T element) {          //http://www.tutorialspoint.com/java/java_stack_class.htm
         if (top < array.length) {       //Pushes element onto the stack. element is also returned.
             array[top++] = element;
-            return array[top - 1];
-        }
+            return array[top - 1];      //I've made it advisedly - get and return element from structure itself once it was added
+        }                               //instead of returning element that was passed to method.
         return null;
     }
 
@@ -43,7 +43,7 @@ public class MyArrayStack<T> implements IMyStack<T> {
 
     @Override
     public boolean empty() {
-        return (top == 0) && (array[top] == null);
+        return (top == 0);
     }
 
     @Override
