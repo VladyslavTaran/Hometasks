@@ -1,10 +1,7 @@
 package week6.myHashTable;
 
 import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Vladislav on 11.08.2016.
@@ -17,9 +14,14 @@ public class MyHashTable<K,V> implements Map, Iterator {
     private int arraySize;
 
     public MyHashTable(float loadFactor, int arraySize) {
-        array = (Node<K,V>[]) Array.newInstance(Node.class, arraySize);//new Object[arraySize];
+        array = (Node<K,V>[]) Array.newInstance(Node.class, arraySize);
         this.loadFactor = loadFactor;
         this.arraySize = arraySize;
+    }
+
+
+    private int getIndex(Node node){
+        return node.getKey().hashCode() % arraySize;
     }
 
     @Override
@@ -80,32 +82,25 @@ public class MyHashTable<K,V> implements Map, Iterator {
     @Override
     public Object put(Object key, Object value) {
         Node node = new Node(key, value);
-        if (elementsCount/arraySize < loadFactor) {
-            int index = key.hashCode() % arraySize;
-            if (array[index] == null) {
-                array[index] = node;
-            } else {
-                Node subNode = array[index].getNext();
-                if (subNode != null) {
-                    while (subNode != null) {
-                        if (subNode.getNext() != null) {
-                            subNode = subNode.getNext();
-                        } else break;
-                    }
-                    subNode.setNext(node);
-                } else {
-                    array[index].setNext(node);
-                }
-            }
+        if (elementsCount/arraySize >= loadFactor) rehashing();
+        int index = key.hashCode() % arraySize;
+
+        if (array[index] == null) {
+            array[index] = node;
         } else {
-            rehashing();
-            int index = key.hashCode() % arraySize;
-            if (array[index] != null){
-                array[index].setNext(node);
+            Node subNode = array[index].getNext();
+            if (subNode != null) {
+                while (subNode != null) {
+                    if (subNode.getNext() != null) {
+                        subNode = subNode.getNext();
+                    } else break;
+                }
+                subNode.setNext(node);
             } else {
-                array[index] = node;
+                array[index].setNext(node);
             }
         }
+
         elementsCount++;
         return value;
     }
@@ -113,20 +108,30 @@ public class MyHashTable<K,V> implements Map, Iterator {
     private void rehashing(){
         arraySize *= 2;
         Node<K,V>[] temp = (Node<K,V>[]) Array.newInstance(Node.class, arraySize);
+        Node nodeTmp;
         for (int i = 0; i < array.length; i++) {
             Node node = array[i];
             if (node != null){
                 if (node.getNext() != null){
                     while(node != null){
-                        int index = node.getKey().hashCode() % arraySize;
-                        if (temp[index] == null) temp[index] = node;
-                        else temp[index].setNext(node);
+                        int index = getIndex(node);
+                        nodeTmp = node.getNext();
+                        node.setNext(null);
+                        if (temp[index] == null){
+                            temp[index] = node;
+                        } else {
+                            temp[index].setNext(node);
+                        }
+                        node.setNext(nodeTmp);
                         node = node.getNext();
                     }
                 } else {
-                    int index = node.getKey().hashCode() % arraySize;
-                    if (temp[index] == null) temp[index] = node;
-                    else temp[index].setNext(node);
+                    int index = getIndex(node);
+                    if (temp[index] == null){
+                        temp[index] = node;
+                    } else {
+                        temp[index].setNext(node);
+                    }
                 }
             }
         }
@@ -136,39 +141,62 @@ public class MyHashTable<K,V> implements Map, Iterator {
     @Override
     public Object remove(Object key) {
         Object value = null;
+        Node node;
         for (int i = 0; i < arraySize; i++) {
-            Node node = array[i];
+            node = array[i];
             if (node != null) {
                 if (node.getNext() == null){
                     if (node.getKey().equals(key)) {
                         value = (V) node.getValue();
-                        node = null;
+                        array[i] = null;
                         break;
                     }
                 } else {
                     if (node.getKey().equals(key)){
                         value = (V) node.getValue();
-                        node = node.getNext();
+                        array[i] = node.getNext();
                         break;
                     } else {
-                        while (node.getNext() != null) {
-                            node = node.getNext();
+                        node = node.getNext();
+                        while (node != null) {
                             if (node.getKey().equals(key)) {
                                 value = (V) node.getValue();
-                                node = node.getNext();
-                                return value;
+                                array[i] = node.getNext();
+                                break;
                             }
+                            node = node.getNext();
                         }
                     }
                 }
             }
         }
+        elementsCount--;
         return value;
     }
 
     @Override
     public void putAll(Map m) {
-        //will be implemented till Saturday
+        MyHashTable map = (MyHashTable<K,V>)m;
+        Node[] arrayIn = map.getArray();
+        Node node;
+        Node tmp;
+
+        for (int i = 0; i < arrayIn.length; i++) {
+            node = arrayIn[i];
+            if (node != null){
+                if (node.getNext() != null){
+                    while(node != null){
+                        tmp = node.getNext();
+                        node.setNext(null);
+                        put(node.getKey(), node.getValue());
+                        node.setNext(tmp);
+                        node = node.getNext();
+                    }
+                } else {
+                    put(node.getKey(), node.getValue());
+                }
+            }
+        }
     }
 
     @Override
@@ -178,20 +206,56 @@ public class MyHashTable<K,V> implements Map, Iterator {
 
     @Override
     public Set keySet() {
-        //will be implemented till Saturday
-        return null;
+        Set<K> set = new HashSet<>(elementsCount, loadFactor);
+        Node<K,V> node;
+
+        for (int i = 0; i < arraySize; i++) {
+            node = array[i];
+            if (node != null) {
+                while(node != null) {
+                    set.add(node.getKey());
+                    node = node.getNext();
+                }
+            }
+        }
+
+        return set;
     }
 
     @Override
     public Collection values() {
-        //will be implemented till Saturday
-        return null;
+        Set<V> set = new HashSet<>(elementsCount, loadFactor);
+        Node<K,V> node;
+
+        for (int i = 0; i < arraySize; i++) {
+            node = array[i];
+            if (node != null) {
+                while(node != null) {
+                    set.add(node.getValue());
+                    node = node.getNext();
+                }
+            }
+        }
+
+        return set;
     }
 
     @Override
     public Set<Entry> entrySet() {
-        //will be implemented till Saturday
-        return null;
+        Set<Map.Entry> set = new HashSet<>(elementsCount, loadFactor);
+        Node<K,V> node;
+
+        for (int i = 0; i < arraySize; i++) {
+            node = array[i];
+            if (node != null) {
+                while(node != null) {
+                    set.add(node);
+                    node = node.getNext();
+                }
+            }
+        }
+
+        return set;
     }
 
     @Override
@@ -209,5 +273,9 @@ public class MyHashTable<K,V> implements Map, Iterator {
     @Override
     public void remove() {
         //will be implemented till Saturday
+    }
+
+    public Node<K, V>[] getArray() {
+        return array;
     }
 }

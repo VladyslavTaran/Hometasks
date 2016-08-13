@@ -1,11 +1,14 @@
 package week6.myHashTable;
 
+import java.util.Map;
+
 /**
  * Created by Vladislav on 11.08.2016.
  */
-public class Node<K,V>{
+public class Node<K,V> implements Map.Entry{
     private K key;
     private V value;
+    private Node next = null;
 
     public Node(K key, V value) {
         this.value = value;
@@ -20,8 +23,6 @@ public class Node<K,V>{
         this.next = next;
     }
 
-    private Node next;
-
     public K getKey() {
         return key;
     }
@@ -34,7 +35,8 @@ public class Node<K,V>{
         return value;
     }
 
-    public void setValue(V value) {
-        this.value = value;
+    public Object setValue(Object value) {
+        this.value = (V) value;
+        return value;
     }
 }
