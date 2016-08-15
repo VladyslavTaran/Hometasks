@@ -31,7 +31,7 @@ public class TestMyHashTable {
         return myHashTable.isEmpty() == false;
     }
     public static boolean testPut(){
-        MyHashTable<KeyClass, String> myHashTable = new MyHashTable<>(0.75f, 5);
+        MyHashTable<KeyClass, String> myHashTable = new MyHashTable<>(0.75f, 10);
         myHashTable.put(new KeyClass("field1", 12, 1f), "string1");
         myHashTable.put(new KeyClass("field2", 13, 2f), "string2");
         myHashTable.put(new KeyClass("field3", 14, 3f), "string3");

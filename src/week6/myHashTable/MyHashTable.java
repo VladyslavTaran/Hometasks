@@ -6,27 +6,37 @@ import java.util.*;
 /**
  * Created by Vladislav on 11.08.2016.
  */
-public class MyHashTable<K,V> implements Map, Iterator {
+public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
 
     private Node<K,V>[] array;
     private int elementsCount;
     private float loadFactor;
     private int arraySize;
+    private HashSet keysSet;
+    private HashSet valuesSet;
+    private Iterator<Node<K, V>> iterator;
 
     public MyHashTable(float loadFactor, int arraySize) {
         array = (Node<K,V>[]) Array.newInstance(Node.class, arraySize);
         this.loadFactor = loadFactor;
         this.arraySize = arraySize;
+        keysSet = new HashSet<>();
+        valuesSet = new HashSet();
     }
 
-
     private int getIndex(Node node){
-        return node.getKey().hashCode() % arraySize;
+        return Math.abs(node.getKey().hashCode() % arraySize);
     }
 
     @Override
     public int size() {
         return elementsCount;
+    }
+
+    private int findFirstNotNull(int start){
+        for (; start < array.length && array[start] == null; start++) {
+        }
+        return start;
     }
 
     @Override
@@ -36,43 +46,26 @@ public class MyHashTable<K,V> implements Map, Iterator {
 
     @Override
     public boolean containsKey(Object key) {
-        for (int i = 0; i < arraySize; i++) {
-            Node node = array[i];
-            if (node != null) {
-                if (node.getKey().equals(key)) return true;
-                while (node.getNext() != null) {
-                    node = node.getNext();
-                    if (node.getKey().equals(key)) return true;
-                }
-            }
-        }
-        return false;
+        return keysSet.contains((K)key);
     }
 
     @Override
     public boolean containsValue(Object value) {
-        for (int i = 0; i < arraySize; i++) {
-            Node node = array[i];
-            if (node != null) {
-                if (node.getValue().equals(value)) return true;
-                while (node.getNext() != null) {
-                    node = node.getNext();
-                    if (node.getValue().equals(value)) return true;
-                }
-            }
-        }
-        return false;
+        return valuesSet.contains((V)value);
     }
 
     @Override
     public Object get(Object key) {
-        for (int i = 0; i < arraySize; i++) {
-            Node node = array[i];
-            if (node != null) {
-                if (node.getKey().equals(key)) return node.getValue();
-                while (node.getNext() != null) {
+        if (containsKey((K)key)){
+            Node node = array[findFirstNotNull(0)];
+            while (node != null){
+                if (node.getKey().equals((K)key)) {
+                    return node.getValue();
+                }
+                if (node.getNext() != null){
                     node = node.getNext();
-                    if (node.getKey().equals(key)) return node.getValue();
+                } else {
+                    node = iterator.next();
                 }
             }
         }
@@ -81,121 +74,70 @@ public class MyHashTable<K,V> implements Map, Iterator {
 
     @Override
     public Object put(Object key, Object value) {
-        Node node = new Node(key, value);
-        if (elementsCount/arraySize >= loadFactor) rehashing();
-        int index = key.hashCode() % arraySize;
+        if (key != null && value != null) {
+            Node<K,V> node = new Node(key, value);
+            if (elementsCount / arraySize >= loadFactor) rehashing();
+            int index = key.hashCode() % arraySize;
 
-        if (array[index] == null) {
-            array[index] = node;
-        } else {
-            Node subNode = array[index].getNext();
-            if (subNode != null) {
-                while (subNode != null) {
-                    if (subNode.getNext() != null) {
-                        subNode = subNode.getNext();
-                    } else break;
+            if (array[index] != null) {
+                if (array[index].getKey().equals((K) key)) {
+                    node.setNext(array[index].getNext());
+                } else {
+                    node.setNext(array[index]);
                 }
-                subNode.setNext(node);
-            } else {
-                array[index].setNext(node);
             }
-        }
 
-        elementsCount++;
-        return value;
+            array[index] = node;
+
+            elementsCount++;
+            keysSet.add((K) key);
+            valuesSet.add((V) value);
+            iterator = iterator();
+            return value;
+        }
+        return null;
     }
 
     private void rehashing(){
         arraySize *= 2;
+        elementsCount = 0;
         Node<K,V>[] temp = (Node<K,V>[]) Array.newInstance(Node.class, arraySize);
-        Node nodeTmp;
-        for (int i = 0; i < array.length; i++) {
-            Node node = array[i];
-            if (node != null){
-                if (node.getNext() != null){
-                    while(node != null){
-                        int index = getIndex(node);
-                        nodeTmp = node.getNext();
-                        node.setNext(null);
-                        if (temp[index] == null){
-                            temp[index] = node;
-                        } else {
-                            temp[index].setNext(node);
-                        }
-                        node.setNext(nodeTmp);
-                        node = node.getNext();
-                    }
-                } else {
-                    int index = getIndex(node);
-                    if (temp[index] == null){
-                        temp[index] = node;
-                    } else {
-                        temp[index].setNext(node);
-                    }
-                }
-            }
-        }
+        Set<Map.Entry> set = entrySet();
+
         array = temp;
+
+        for (Entry entry : set) {
+            put(entry.getKey(), entry.getValue());
+        }
+
+        iterator = iterator();
     }
 
     @Override
     public Object remove(Object key) {
-        Object value = null;
-        Node node;
-        for (int i = 0; i < arraySize; i++) {
-            node = array[i];
-            if (node != null) {
-                if (node.getNext() == null){
-                    if (node.getKey().equals(key)) {
-                        value = (V) node.getValue();
-                        array[i] = null;
-                        break;
-                    }
-                } else {
-                    if (node.getKey().equals(key)){
-                        value = (V) node.getValue();
-                        array[i] = node.getNext();
-                        break;
-                    } else {
-                        node = node.getNext();
-                        while (node != null) {
-                            if (node.getKey().equals(key)) {
-                                value = (V) node.getValue();
-                                array[i] = node.getNext();
-                                break;
-                            }
-                            node = node.getNext();
-                        }
-                    }
-                }
+        Node node = array[findFirstNotNull(0)];
+
+        while (node != null){
+            if (node.getKey().equals(key)) {
+                iterator.remove();
+                elementsCount--;
+                keysSet.remove((K)key);
+                valuesSet.remove((V)node.getValue());
+                return node.getValue();
             }
+            node = iterator.next();
         }
-        elementsCount--;
-        return value;
+
+        return null;
     }
 
     @Override
     public void putAll(Map m) {
         MyHashTable map = (MyHashTable<K,V>)m;
-        Node[] arrayIn = map.getArray();
-        Node node;
-        Node tmp;
+        Set<Map.Entry> set = map.entrySet();
 
-        for (int i = 0; i < arrayIn.length; i++) {
-            node = arrayIn[i];
-            if (node != null){
-                if (node.getNext() != null){
-                    while(node != null){
-                        tmp = node.getNext();
-                        node.setNext(null);
-                        put(node.getKey(), node.getValue());
-                        node.setNext(tmp);
-                        node = node.getNext();
-                    }
-                } else {
-                    put(node.getKey(), node.getValue());
-                }
-            }
+        for (Entry entry : set) {
+            put(entry.getKey(), entry.getValue());
         }
     }
 
@@ -206,38 +148,12 @@ public class MyHashTable<K,V> implements Map, Iterator {
 
     @Override
     public Set keySet() {
-        Set<K> set = new HashSet<>(elementsCount, loadFactor);
-        Node<K,V> node;
-
-        for (int i = 0; i < arraySize; i++) {
-            node = array[i];
-            if (node != null) {
-                while(node != null) {
-                    set.add(node.getKey());
-                    node = node.getNext();
-                }
-            }
-        }
-
-        return set;
+        return keysSet;
     }
 
     @Override
     public Collection values() {
-        Set<V> set = new HashSet<>(elementsCount, loadFactor);
-        Node<K,V> node;
-
-        for (int i = 0; i < arraySize; i++) {
-            node = array[i];
-            if (node != null) {
-                while(node != null) {
-                    set.add(node.getValue());
-                    node = node.getNext();
-                }
-            }
-        }
-
-        return set;
+        return valuesSet;
     }
 
     @Override
@@ -245,7 +161,7 @@ public class MyHashTable<K,V> implements Map, Iterator {
         Set<Map.Entry> set = new HashSet<>(elementsCount, loadFactor);
         Node<K,V> node;
 
-        for (int i = 0; i < arraySize; i++) {
+        for (int i = 0; i < array.length; i++) {
             node = array[i];
             if (node != null) {
                 while(node != null) {
@@ -254,28 +170,71 @@ public class MyHashTable<K,V> implements Map, Iterator {
                 }
             }
         }
-
         return set;
-    }
-
-    @Override
-    public boolean hasNext() {
-        //will be implemented till Saturday
-        return false;
-    }
-
-    @Override
-    public Object next() {
-        //will be implemented till Saturday
-        return null;
-    }
-
-    @Override
-    public void remove() {
-        //will be implemented till Saturday
     }
 
     public Node<K, V>[] getArray() {
         return array;
+    }
+
+    @Override
+    public Iterator<Node<K, V>> iterator() {
+        return new MyHashTableIterator();
+    }
+
+    private class MyHashTableIterator implements Iterator<Node<K,V>>{
+
+        private Node<K,V> currNode;
+        private int currBucketPos;
+
+        public MyHashTableIterator() {
+            if(!isEmpty()){
+                currBucketPos = findFirstNotNull(0);
+                currNode = array[currBucketPos];
+            }
+        }
+
+        public int findFirstNotNull(int start){
+            for (; start < array.length && array[start] == null; start++) {
+            }
+            return start;
+        }
+
+        public Node<K, V> getCurrNode() {
+            return currNode;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return currNode != null;
+        }
+
+        @Override
+        public Node<K, V> next() {
+            Node<K,V> nodeRes = currNode;
+
+            if (currNode.getNext() != null) {
+                currNode = currNode.getNext();
+            } else {
+                int indexNext = findFirstNotNull(currBucketPos + 1);
+                if (indexNext == (arraySize)){
+                    currNode = null;
+                } else {
+                    currBucketPos = indexNext;
+                    currNode = array[indexNext];
+                }
+            }
+
+            return currNode;
+        }
+
+        @Override
+        public void remove() {
+            if (currNode.getNext() != null) {
+                currNode = currNode.getNext();
+            } else {
+                currNode = null;
+            }
+        }
     }
 }

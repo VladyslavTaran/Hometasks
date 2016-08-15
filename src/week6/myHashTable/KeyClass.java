@@ -1,9 +1,11 @@
 package week6.myHashTable;
 
+import java.util.Iterator;
+
 /**
  * Created by Vladislav on 10.08.2016.
  */
-public class KeyClass {
+public class KeyClass implements Iterable {
     String strField;
     int intField;
     float fltField;
@@ -13,7 +15,6 @@ public class KeyClass {
         this.intField = intField;
         this.fltField = fltField;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -34,5 +35,11 @@ public class KeyClass {
         result = 31 * result + intField;
         result = 31 * result + (fltField != +0.0f ? Float.floatToIntBits(fltField) : 0);
         return result;
+    }
+
+    @Override
+    public Iterator iterator() {
+
+        return null;
     }
 }
