@@ -12,8 +12,8 @@ public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
     private int elementsCount;
     private float loadFactor;
     private int arraySize;
-    private HashSet keysSet;
-    private HashSet valuesSet;
+    private HashSet<K> keysSet;
+    private List<V> valuesList;
     private Iterator<Node<K, V>> iterator;
 
     public MyHashTable(float loadFactor, int arraySize) {
@@ -21,7 +21,7 @@ public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
         this.loadFactor = loadFactor;
         this.arraySize = arraySize;
         keysSet = new HashSet<>();
-        valuesSet = new HashSet();
+        valuesList = new ArrayList<>();
     }
 
     private int getIndex(Node node){
@@ -51,21 +51,15 @@ public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
 
     @Override
     public boolean containsValue(Object value) {
-        return valuesSet.contains((V)value);
+        return valuesList.contains((V)value);
     }
 
     @Override
     public Object get(Object key) {
         if (containsKey((K)key)){
-            Node node = array[findFirstNotNull(0)];
-            while (node != null){
-                if (node.getKey().equals((K)key)) {
+            for (Node<K,V> node : this) {
+                if (node.getKey().equals((K)key)){
                     return node.getValue();
-                }
-                if (node.getNext() != null){
-                    node = node.getNext();
-                } else {
-                    node = iterator.next();
                 }
             }
         }
@@ -91,10 +85,10 @@ public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
 
             elementsCount++;
             keysSet.add((K) key);
-            valuesSet.add((V) value);
-            iterator = iterator();
-            return value;
-        }
+            valuesList.add((V) value);
+            iterator = iterator();  //Once I've removed this code, I got NullPointerException (I faced that error before while debugging my code)
+            return value;           //because after rehashing my array automatically increased.
+        }                           //Hence, I need to re-define iterator after adding new element because rehashibg may happen.
         return null;
     }
 
@@ -122,7 +116,7 @@ public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
                 iterator.remove();
                 elementsCount--;
                 keysSet.remove((K)key);
-                valuesSet.remove((V)node.getValue());
+                valuesList.remove((V)node.getValue());
                 return node.getValue();
             }
             node = iterator.next();
@@ -153,7 +147,7 @@ public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
 
     @Override
     public Collection values() {
-        return valuesSet;
+        return valuesList;
     }
 
     @Override
@@ -194,12 +188,6 @@ public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
             }
         }
 
-        public int findFirstNotNull(int start){
-            for (; start < array.length && array[start] == null; start++) {
-            }
-            return start;
-        }
-
         public Node<K, V> getCurrNode() {
             return currNode;
         }
@@ -229,10 +217,10 @@ public class MyHashTable<K,V> implements Map, Iterable<Node<K,V>>{
         }
 
         @Override
-        public void remove() {
-            if (currNode.getNext() != null) {
-                currNode = currNode.getNext();
-            } else {
+        public void remove() {                  //I've left as it is since I did'nt get your point from the comment
+            if (currNode.getNext() != null) {   //Should I remove value from collection only here? And what about node itself if so?
+                currNode = currNode.getNext();  //Or you might meant that I should have removed value only in this method (iterator remove method)
+            } else {                            // and node itself in remove method from MyHashTable?
                 currNode = null;
             }
         }
